@@ -6,6 +6,7 @@ Customers call a Twilio number and speak naturally. An AI agent (Google ADK + Ge
 
 ---
 
+For Instance consider name of the Agent to be "Priya"
 ## Demo Flow
 
 ```
