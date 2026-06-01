@@ -5,7 +5,7 @@ from google.adk.agents import LlmAgent
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types as genai_types
-
+from google.adk.models.lite_llm import LiteLlm
 from backend.tools import get_menu, calculate_total, place_order, cancel_order, book_table
 from backend.db import get_customer
 
@@ -46,12 +46,16 @@ FLOW:
 7. Thank and end call
 """
 
+model = LiteLlm(
+    model="groq/llama-3.3-70b-versatile",  # use "groq/<groq-model-name>"
+)
+
 
 def _make_agent(menu_context: str, customer_context: str) -> LlmAgent:
     full_prompt = SYSTEM_PROMPT + f"\n\nMENU:\n{menu_context}\n\nCUSTOMER INFO:\n{customer_context}"
     return LlmAgent(
         name="priya",
-        model="gemini-2.0-flash",
+        model=model,
         description="Restaurant phone ordering agent for Kukkad Nukkad",
         instruction=full_prompt,
         tools=[get_menu, calculate_total, place_order, cancel_order, book_table],
