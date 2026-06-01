@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+twilio
+motor
+python-dotenv
+google-adk
+anthropic
+pymongo
