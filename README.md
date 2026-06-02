@@ -266,4 +266,14 @@ No code changes needed between dev and prod — just swap the public URL.
 
 ---
 
+### Prototype Images:
+
+`Dashboard` 
+
+<img width="1405" height="853" alt="Screenshot 2026-06-01 221215" src="https://github.com/user-attachments/assets/ac317a30-ac84-4caa-8ff4-8757a2e92446" />
+<br/>
+<br/>
+<img width="1414" height="846" alt="Screenshot 2026-06-01 221411" src="https://github.com/user-attachments/assets/b60ee461-e6f6-43e8-85b3-82f55660795c" />
+
+
 > Built with Google ADK · Gemini 2.0 Flash · FastAPI · MongoDB · Twilio
