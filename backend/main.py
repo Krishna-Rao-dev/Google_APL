@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 log = logging.getLogger("kukkad")
 
-active_calls: dict[str, str] = {}
+active_calls: dict[str, dict] = {}
 
 
 @asynccontextmanager
@@ -110,8 +110,10 @@ async def incoming_call(
     log.info(f"📞 Incoming call | SID={CallSid} | From={From} | To={To} | Status={CallStatus}")
     try:
         phone = From
-        active_calls[CallSid] = phone
-
+        active_calls[CallSid] = {
+    "phone": From,
+    "menu": await get_full_menu()   # fetched ONCE per call
+}
         log.debug("  Fetching menu from DB...")
         menu = await get_full_menu()
         log.info(f"  Menu loaded: {len(menu)} items")
@@ -157,8 +159,9 @@ async def handle_speech(
             log.warning("  Empty SpeechResult — asking to repeat")
             return twiml_say("Sorry, I didn't catch that. Could you say that again?")
 
-        phone = From
-        menu = await get_full_menu()
+        session = active_calls.get(CallSid)
+        phone = session["phone"] if session else From
+        menu = session["menu"] if session else await get_full_menu() 
 
         log.debug("  Sending to agent...")
         reply = await chat(CallSid, SpeechResult, phone, menu)
