@@ -246,14 +246,21 @@ npm run dev
 
 ## Admin Dashboard
 
-Three tabs, live-polling every 15 seconds from MongoDB:
-
-**Overview** — Today's revenue, order count, active orders, top items bar chart, revenue by day line chart
-
-**Deliveries** — Live table of all delivery orders with status control (placed → preparing → out for delivery → delivered)
-
-**Dining** — Card grid of table bookings showing party size, customer, items, with one-click status buttons (booked → seated → done)
-
+**1. Multi-Tab Kitchen Portal - Centralized dashboard with Overview, Delivery, Dining, and Menu management tabs for order tracking and analytics**
+<br/>
+<br/>
+2. Live Delivery Queue & Real-time ETA Tracking - Active delivery queue with countdown timers, one-time ETA setting per order, and "Delivered" status confirmation 
+<br/>
+<br/>
+**3. Order Status Management - Change order statuses across delivery (placed → preparing → out for delivery → delivered) and dining (booked → seated → done) workflows**
+<br/>
+<br/>
+**4. Menu Management - Add, remove, and categorize menu items with pricing, prep times, veg/non-veg tags, and "Today's Special" marking**
+<br/>
+<br/>
+**5. Real-time Analytics & Auto-refresh - Dashboard displays today's revenue, order counts, top items ordered, and revenue trends with 15-second auto-refresh cycle** 
+<br/>
+<br/>
 ---
 
 ## Deployment (Production)
@@ -272,10 +279,25 @@ No code changes needed between dev and prod — just swap the public URL.
 
 `Dashboard` 
 
-<img width="1405" height="853" alt="Screenshot 2026-06-01 221215" src="https://github.com/user-attachments/assets/ac317a30-ac84-4caa-8ff4-8757a2e92446" />
+
+<img width="1917" height="915" alt="image" src="https://github.com/user-attachments/assets/ee238909-fa4f-46b8-8ccd-c978a449a8a4" />
+
 <br/>
 <br/>
-<img width="1414" height="846" alt="Screenshot 2026-06-01 221411" src="https://github.com/user-attachments/assets/b60ee461-e6f6-43e8-85b3-82f55660795c" />
+<img width="1898" height="920" alt="image" src="https://github.com/user-attachments/assets/8061636f-ff2c-46ca-ae2d-2c0ecea12de6" />
+<br/>
+<br/>
+<img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/13a51d57-14c1-4c1d-91eb-41e44ca93011" />
+
+<br/>
+<br/>
+<img width="1893" height="904" alt="image" src="https://github.com/user-attachments/assets/6c8bd64c-578e-453f-ac76-987d01fb4812" />
+<br/>
+<br/>
+<img width="1897" height="903" alt="image" src="https://github.com/user-attachments/assets/50d76d31-7741-4687-b4f2-13d7f857df1a" />
+<br/>
+<br/>
+
 
 
 > Built with LangGraph · Groq llama-3.3-70b · FastAPI · MongoDB · Twilio
