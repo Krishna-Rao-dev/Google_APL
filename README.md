@@ -2,7 +2,7 @@
 
 > A real phone number. A real conversation. A real order placed — no app, no typing.
 
-Customers call a Twilio number and speak naturally. An AI agent (Google ADK + Gemini) handles the entire ordering flow — takes the order, confirms it, collects delivery details, writes to MongoDB, and updates the admin dashboard live.
+Customers call a Twilio number and speak naturally. An AI agent (LangGraph + Groq) handles the entire ordering flow — takes the order, confirms it, collects delivery details, writes to MongoDB, and updates the admin dashboard live.
 
 ---
 
@@ -36,10 +36,10 @@ Customer: "Yes."
 flowchart TD
     A([📞 Customer Call]) --> B[Twilio Voice]
     B -->|Speech-to-Text| C[FastAPI Server]
-    C --> D[Google ADK Runner]
-    D --> E[Gemini 2.0 Flash\nLlmAgent - Priya]
+    C --> D[LangGraph Runner]
+    D --> E[Groq LLM\nllama-3.3-70b-versatile - Priya]
     E -->|Tool Call| F{Tools}
-    F --> G[(MongoDB Atlas)]
+    F --> G[(MongoDB)]
     F --> H[Calculate Total]
     E -->|Text Reply| C
     C -->|TwiML + TTS| B
@@ -61,7 +61,7 @@ sequenceDiagram
     participant C as Customer
     participant T as Twilio
     participant F as FastAPI
-    participant A as ADK Agent
+    participant A as LangGraph Agent
     participant DB as MongoDB
 
     C->>T: Speaks
@@ -69,7 +69,7 @@ sequenceDiagram
     F->>A: chat(call_sid, text, phone)
     A->>DB: get_menu() / get_customer()
     DB-->>A: Menu + customer history
-    A->>A: Gemini decides reply or tool call
+    A->>A: Groq decides reply or tool call
     alt Tool call needed
         A->>DB: place_order() / book_table()
         DB-->>A: Confirmation
@@ -156,10 +156,10 @@ erDiagram
 |-------|-----------|
 | Phone | Twilio Voice (STT + TTS) |
 | Voice | Amazon Polly — `Polly.Aditi` (Indian English) |
-| Agent | Google ADK `LlmAgent` |
-| LLM | Gemini 2.0 Flash |
+| Agent | LangGraph `StateGraph` |
+| LLM | Groq — `llama-3.3-70b-versatile` |
 | Backend | FastAPI + Uvicorn |
-| Database | MongoDB Atlas + Motor (async) |
+| Database | MongoDB + Motor (async) |
 | Dashboard | React + Recharts |
 
 ---
@@ -185,7 +185,7 @@ cp .env.example .env
 | `TWILIO_AUTH_TOKEN` | Twilio Console |
 | `TWILIO_PHONE_NUMBER` | Your Twilio number |
 | `MONGODB_URI` | [MongoDB Atlas](https://cloud.mongodb.com) → Connect |
-| `GOOGLE_API_KEY` | [Google AI Studio](https://aistudio.google.com) |
+| `GROQ_API_KEY` | [Groq Console](https://console.groq.com) |
 
 ### 3. Run
 
@@ -222,6 +222,7 @@ npm run dev
 | Tool | Triggers When | DB Action |
 |------|--------------|-----------|
 | `get_menu(category?)` | Customer asks what's available / special | READ menu_items |
+| `save_order_draft(...)` | Customer gives any detail — name, items, address, pincode | None (in-memory) |
 | `calculate_total(items, type)` | Order confirmed, delivery type chosen | None |
 | `place_order(...)` | Customer gives final "yes" | WRITE orders + UPSERT customers |
 | `book_table(order_id, party_size)` | Dining chosen | UPDATE orders.table_booking |
@@ -234,24 +235,32 @@ npm run dev
 | Scenario | Behaviour |
 |----------|-----------|
 | "What's special today?" | `get_menu(category="special")` → reads `is_special: true` items |
-| Customer changes order mid-way | Agent updates items, re-confirms full order |
+| Customer changes order mid-way | Agent updates draft, recalculates, re-confirms |
 | Cancel before placing | Agent confirms cancellation, ends call gracefully |
 | Cancel after placing | `cancel_order()` called, status → `cancelled` in DB |
 | Dining chosen | Skips address flow, asks party size → `book_table()` |
 | Returning customer | Saved address offered automatically at delivery step |
+| Address + pincode in one message | Agent extracts both, saves in single `save_order_draft` call |
 
 ---
 
 ## Admin Dashboard
 
-Three tabs, live-polling every 15 seconds from MongoDB:
-
-**Overview** — Today's revenue, order count, active orders, top items bar chart, revenue by day line chart
-
-**Deliveries** — Live table of all delivery orders with status control (placed → preparing → out for delivery → delivered)
-
-**Dining** — Card grid of table bookings showing party size, customer, items, with one-click status buttons (booked → seated → done)
-
+**1. Multi-Tab Kitchen Portal - Centralized dashboard with Overview, Delivery, Dining, and Menu management tabs for order tracking and analytics**
+<br/>
+<br/>
+2. Live Delivery Queue & Real-time ETA Tracking - Active delivery queue with countdown timers, one-time ETA setting per order, and "Delivered" status confirmation 
+<br/>
+<br/>
+**3. Order Status Management - Change order statuses across delivery (placed → preparing → out for delivery → delivered) and dining (booked → seated → done) workflows**
+<br/>
+<br/>
+**4. Menu Management - Add, remove, and categorize menu items with pricing, prep times, veg/non-veg tags, and "Today's Special" marking**
+<br/>
+<br/>
+**5. Real-time Analytics & Auto-refresh - Dashboard displays today's revenue, order counts, top items ordered, and revenue trends with 15-second auto-refresh cycle** 
+<br/>
+<br/>
 ---
 
 ## Deployment (Production)
@@ -270,10 +279,25 @@ No code changes needed between dev and prod — just swap the public URL.
 
 `Dashboard` 
 
-<img width="1405" height="853" alt="Screenshot 2026-06-01 221215" src="https://github.com/user-attachments/assets/ac317a30-ac84-4caa-8ff4-8757a2e92446" />
+
+<img width="1917" height="915" alt="image" src="https://github.com/user-attachments/assets/ee238909-fa4f-46b8-8ccd-c978a449a8a4" />
+
 <br/>
 <br/>
-<img width="1414" height="846" alt="Screenshot 2026-06-01 221411" src="https://github.com/user-attachments/assets/b60ee461-e6f6-43e8-85b3-82f55660795c" />
+<img width="1898" height="920" alt="image" src="https://github.com/user-attachments/assets/8061636f-ff2c-46ca-ae2d-2c0ecea12de6" />
+<br/>
+<br/>
+<img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/13a51d57-14c1-4c1d-91eb-41e44ca93011" />
+
+<br/>
+<br/>
+<img width="1893" height="904" alt="image" src="https://github.com/user-attachments/assets/6c8bd64c-578e-453f-ac76-987d01fb4812" />
+<br/>
+<br/>
+<img width="1897" height="903" alt="image" src="https://github.com/user-attachments/assets/50d76d31-7741-4687-b4f2-13d7f857df1a" />
+<br/>
+<br/>
 
 
-> Built with Google ADK · Gemini 2.0 Flash · FastAPI · MongoDB · Twilio
+
+> Built with LangGraph · Groq llama-3.3-70b · FastAPI · MongoDB · Twilio
