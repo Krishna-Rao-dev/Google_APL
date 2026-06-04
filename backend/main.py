@@ -10,6 +10,7 @@ from twilio.twiml.voice_response import VoiceResponse, Gather
 from backend.db import seed_menu, get_full_menu
 from backend.agent import chat, end_session
 from backend.dashboard_routes import router as dashboard_router
+from backend.sms import handle_inbound_sms
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -79,17 +80,17 @@ def twiml_say(text: str) -> Response:
     gather = Gather(
         input="speech",
         action="/voice/respond",
-        speech_timeout="auto",
+        speech_timeout=3,
+        speech_end_threshold=900,
         language="en-IN",
-        enhanced=True
+        enhanced=True,
+        barge_in=True,
+        action_on_empty_result=True
     )
     gather.say(text, voice="Polly.Aditi", language="en-IN")
     vr.append(gather)
-    # Fallback if caller goes silent
-    vr.say("I didn't catch that, please call again. Goodbye!", voice="Polly.Aditi")
-    xml = str(vr)
-    log.debug(f"  TwiML: {xml}")
-    return Response(content=xml, media_type="application/xml")
+    vr.redirect("/voice/respond?SpeechResult=&CallSid=unknown")
+    return Response(content=str(vr), media_type="application/xml")
 
 
 def twiml_error(msg: str = "Something went wrong, please call again.") -> Response:
@@ -132,7 +133,7 @@ async def incoming_call(
         )
         gather.say(
             "Hello! Welcome to Kukkad Nukkad. How can I help you today?",
-            voice="Polly.Aditi",
+            voice="Polly.Raveena",
             language="en-IN"
         )
         vr.append(gather)
@@ -187,6 +188,25 @@ async def call_status(
         log.info(f"  Cleaning up session for {phone}")
         await end_session(CallSid, phone)
     return Response(status_code=204)
+
+
+
+@app.post("/sms")
+async def inbound_sms(
+    Body: str = Form(default=""),
+    From: str = Form(...),
+):
+    log.info(f"📱 Inbound SMS | From={From} | Body='{Body}'")
+    try:
+        twiml = await handle_inbound_sms(Body, From)
+        return Response(content=twiml, media_type="application/xml")
+    except Exception as e:
+        log.error(f"❌ /sms error: {e}")
+        log.error(traceback.format_exc())
+        from twilio.twiml.messaging_response import MessagingResponse
+        r = MessagingResponse()
+        r.message("Sorry, something went wrong. Please try again.")
+        return Response(content=str(r), media_type="application/xml")
 
 
 @app.get("/")

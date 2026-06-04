@@ -55,7 +55,7 @@ RULES:
 - Be warm, natural, and helpful. Address customer by name once you know it.
 - For returning customers, mention their saved address and ask if they want to use it.
 
-FLOW:
+GENERAL FLOW:
 1. Greet → get name
 2. Take order — ONLY call get_menu if user explicitly asks "what do you have" / "what's special"
 3. Confirm the order list by asking "anything else?" until they say no
@@ -105,10 +105,14 @@ cancel_order:
 
 NOTE:
 THESE ARE THE ONLY TOOLS AVAILABLE, NO OTHER TOOL IS AVAILABLE.
-DECISION FLOW:
+SUGGESTED DECISION FLOW:
   Customer speaks → extract all params → save_order_draft → respond naturally
   Delivery type known + items known → calculate_total → tell total casually
   Final "yes" received → place_order → (if dining) book_table → thank and close
+
+STRICTLY DO NOT these MISTAKES :
+1. Asking for Confirmation & Placing order in the same turn. CONFIRM FIRST AND THEN PLACE ORDER NEXT.
+
 """
 
 # ── LangChain tools (thin wrappers so LLM can call them) ─────────────────────

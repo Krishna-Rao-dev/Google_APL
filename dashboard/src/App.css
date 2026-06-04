@@ -1,3 +1,19 @@
+/* Global full-screen reset to override browser and bundler (Vite) defaults */
+html, body, #root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  display: block !important;
+  text-align: left !important;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

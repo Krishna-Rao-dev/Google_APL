@@ -6,6 +6,7 @@ from backend.db import (
 from datetime import datetime
 import uuid
 from pydantic import BaseModel
+import asyncio
 DELIVERY_CHARGE = 40
 ESTIMATED_DELIVERY_MINS = 45
 
@@ -143,6 +144,10 @@ async def place_order(
 
     order_id = f"ORD-{uuid.uuid4().hex[:6].upper()}"
 
+    from datetime import timedelta
+    eta_mins = ESTIMATED_DELIVERY_MINS if delivery_type == "home_delivery" else 20
+    estimated_delivery_at = (datetime.utcnow() + timedelta(minutes=eta_mins)).isoformat()
+
     order_doc = {
         "order_id": order_id,
         "customer_name": customer_name,
@@ -159,6 +164,7 @@ async def place_order(
             if party_size
             else ""
         ),
+        "estimated_delivery_at": estimated_delivery_at,
         "status": "placed",
         "created_at": datetime.utcnow()
     }
@@ -174,6 +180,16 @@ async def place_order(
     )
 
     clear_draft(call_sid)
+
+    # Send SMS confirmation (non-blocking — don't delay the call)
+    if phone:
+        try:
+            from backend.sms import send_order_confirmation
+            sms_doc = {**order_doc, "estimated_mins": ESTIMATED_DELIVERY_MINS}
+            asyncio.create_task(send_order_confirmation(phone, sms_doc))
+        except Exception as e:
+            print(f"SMS task error: {e}")
+
     print("🔥 TOOL CALLED: place_order")
     return {
         "order_id": order_id,

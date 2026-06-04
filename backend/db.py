@@ -61,5 +61,4 @@ async def insert_order(order: dict) -> str:
     return str(result.inserted_id)
 
 async def update_order_status(order_id: str, status: str):
-    from bson import ObjectId
-    await orders_col.update_one({"_id": ObjectId(order_id)}, {"$set": {"status": status}})
+    await orders_col.update_one({"order_id": order_id}, {"$set": {"status": status}})
