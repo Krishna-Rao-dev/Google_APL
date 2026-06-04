@@ -2,35 +2,32 @@
 
 > A real phone number. A real conversation. A real order placed — no app, no typing.
 
-Customers call a Twilio number and speak naturally. An AI agent (LangGraph + Groq) handles the entire ordering flow — takes the order, confirms it, collects delivery details, writes to MongoDB, and updates the admin dashboard live.
+Customers call a Twilio number and speak naturally. An AI agent (LangGraph + Groq) handles the entire ordering flow — takes the order, confirms it, collects delivery details, writes to MongoDB, updates the admin dashboard live, and sends SMS confirmations.
 
 ---
 
-For Instance consider name of the Agent to be "Priya"
 ## Demo Flow
 
 ```
 Customer: "Hi, I'm Krishna. I'd like to order from Kukkad Nukkad."
-  Priya:  "Hi Krishna! What would you like to have today?"
+  Agent:  "Hi Krishna! What would you like to have today?"
 Customer: "2 Dal Makhani, 4 Garlic Naan, 1 Veg Pulao."
-  Priya:  "Got it! 2 Dal Makhani, 4 Garlic Naan, 1 Veg Pulao — anything else?"
+  Agent:  "Got it! 2 Dal Makhani, 4 Garlic Naan, 1 Veg Pulao — anything else?"
 Customer: "No that's it."
-  Priya:  "Dining in or home delivery? Delivery has a ₹40 charge."
+  Agent:  "Dining in or home delivery? Delivery has a Rs.40 charge."
 Customer: "Home delivery."
-  Priya:  "What's your address?"
+  Agent:  "What's your address?"
 Customer: "Pune Institute Of Computer Technology, Dhankwadi."
-  Priya:  "And the pincode?"
+  Agent:  "And the pincode?"
 Customer: "411043."
-  Priya:  "Perfect. Your total is ₹1240. Shall I place the order?"
+  Agent:  "Perfect. Your total is Rs.820. Shall I place the order?"
 Customer: "Yes."
-  Priya:  "Order placed! Estimated delivery in 45 minutes. Have a great day!"
+  Agent:  "Order placed! Estimated delivery in 45 minutes. Have a great day!"
 ```
+
 ## REAL TIME DEMO:
 
-<audio controls>
-  <source src="./DEMO.mp3" type="audio/mpeg">
-</audio>
-
+[CALL LOG.mp3](https://github.com/user-attachments/files/28613231/CALL.LOG.mp3)
 <br/>
 <br/>
 - `00:00 - 00:05` - Automated Caller Recognition & Session Initialization
@@ -47,8 +44,7 @@ Customer: "Yes."
 ## GETS LOGGED ON DASHBOARD OF THE RESTAURANT
 <img width="1026" height="595" alt="Screenshot 2026-06-05 005830" src="https://github.com/user-attachments/assets/d9e99645-a75b-4ed7-967f-2960d65fa08c" />
 
-
-## Live Delivery Progress Updates to the Customer
+## LIVE DELIVERY PROGRESS UPDATES TO THE CUSTOMER
 <img width="200" height="300" alt="WhatsApp Image 2026-06-05 at 1 01 07 AM" src="https://github.com/user-attachments/assets/086b02bb-7d30-49d9-960d-ab780202dbf3" />
 
 ---
@@ -59,10 +55,10 @@ Customer: "Yes."
 
 ```mermaid
 flowchart TD
-    A([📞 Customer Call]) --> B[Twilio Voice]
+    A([Phone Call]) --> B[Twilio Voice]
     B -->|Speech-to-Text| C[FastAPI Server]
     C --> D[LangGraph Runner]
-    D --> E[Groq LLM\nllama-3.3-70b-versatile - Priya]
+    D --> E[Groq LLM\nllama-3.3-70b-versatile]
     E -->|Tool Call| F{Tools}
     F --> G[(MongoDB)]
     F --> H[Calculate Total]
@@ -70,11 +66,14 @@ flowchart TD
     C -->|TwiML + TTS| B
     B -->|Speaks reply| A
     G -->|Live Data| I[React Dashboard]
+    F -->|Order Placed / Status Changed| J[Twilio SMS]
+    J -->|Confirmation + Updates| A
 
     style A fill:#f59e0b,color:#000
     style E fill:#4285f4,color:#fff
     style G fill:#10b981,color:#fff
     style I fill:#8b5cf6,color:#fff
+    style J fill:#e11d48,color:#fff
 ```
 
 ---
@@ -88,9 +87,10 @@ sequenceDiagram
     participant F as FastAPI
     participant A as LangGraph Agent
     participant DB as MongoDB
+    participant S as SMS
 
     C->>T: Speaks
-    T->>F: POST /voice/respond<br/>(SpeechResult, CallSid)
+    T->>F: POST /voice/respond (SpeechResult, CallSid)
     F->>A: chat(call_sid, text, phone)
     A->>DB: get_menu() / get_customer()
     DB-->>A: Menu + customer history
@@ -98,10 +98,23 @@ sequenceDiagram
     alt Tool call needed
         A->>DB: place_order() / book_table()
         DB-->>A: Confirmation
+        A->>S: send_order_confirmation()
+        S-->>C: SMS with Order ID + Total
     end
     A-->>F: Agent text reply
-    F-->>T: TwiML <Say> + <Gather>
+    F-->>T: TwiML Say + Gather
     T-->>C: Speaks reply, listens
+```
+
+---
+
+### SMS Flow
+
+```mermaid
+flowchart LR
+    A[Order Placed] -->|auto| B[SMS: Order confirmed + ID + Total]
+    C[Manager changes status] -->|auto| D[SMS: Your meal is on the way + ETA]
+    E[Customer texts Order ID] -->|inbound| F[Lookup DB] --> G[SMS: Live status reply]
 ```
 
 ---
@@ -124,7 +137,6 @@ stateDiagram-v2
     FINAL_CONFIRM --> CANCELLED : customer cancels
     ORDER_PLACED --> [*] : call ends
     CANCELLED --> [*] : call ends
-
     ORDER_PLACED --> CANCELLED : cancel after placing
 ```
 
@@ -157,6 +169,7 @@ erDiagram
         string pincode
         object table_booking
         string status
+        string estimated_delivery_at
         date created_at
     }
 
@@ -173,8 +186,6 @@ erDiagram
 
 ---
 
-
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -186,6 +197,29 @@ erDiagram
 | Backend | FastAPI + Uvicorn |
 | Database | MongoDB + Motor (async) |
 | Dashboard | React + Recharts |
+| Notifications | Twilio SMS |
+
+---
+
+## Project Structure
+
+```
+restaurant-agent/
+├── backend/
+│   ├── __init__.py
+│   ├── main.py              # FastAPI + Twilio voice & SMS webhooks
+│   ├── agent.py             # LangGraph StateGraph + Groq LLM + session mgmt
+│   ├── tools.py             # All agent tools + order draft store
+│   ├── db.py                # Motor async MongoDB client + seed
+│   ├── sms.py               # SMS confirmations + inbound status checks
+│   └── dashboard_routes.py  # /dashboard GET, /orders/:id/status PATCH
+├── dashboard/
+│   └── src/
+│       └── App.jsx          # React: Overview, Deliveries, Dining, Menu tabs
+├── requirements.txt
+├── .env.example
+└── README.md
+```
 
 ---
 
@@ -224,12 +258,18 @@ ngrok http 8000
 
 ### 4. Twilio Console
 
-Go to **Phone Numbers → Your Number → Voice Configuration**:
+**Voice:**
 
 | Field | Value |
 |-------|-------|
 | A call comes in | `https://YOUR_URL/voice` — HTTP POST |
 | Call status changes | `https://YOUR_URL/voice/status` — HTTP POST |
+
+**Messaging:**
+
+| Field | Value |
+|-------|-------|
+| A message comes in | `https://YOUR_URL/sms` — HTTP POST |
 
 ### 5. Dashboard
 
@@ -253,6 +293,14 @@ npm run dev
 | `book_table(order_id, party_size)` | Dining chosen | UPDATE orders.table_booking |
 | `cancel_order(order_id)` | Customer cancels at any point | UPDATE orders.status |
 
+## SMS Features
+
+| Event | Trigger | Message |
+|-------|---------|---------|
+| Order confirmed | Automatic after `place_order` | Order ID, total, delivery type |
+| Status changed | Manager updates via dashboard | New status + ETA remaining |
+| Customer queries | Texts `ORD-XXXXXX` to Twilio number | Live status from DB |
+
 ---
 
 ## Special Cases
@@ -266,29 +314,21 @@ npm run dev
 | Dining chosen | Skips address flow, asks party size → `book_table()` |
 | Returning customer | Saved address offered automatically at delivery step |
 | Address + pincode in one message | Agent extracts both, saves in single `save_order_draft` call |
+| Barge-in during TTS | Twilio stops speaking, captures new input immediately |
 
 ---
 
 ## Admin Dashboard
 
-**1. Multi-Tab Kitchen Portal - Centralized dashboard with Overview, Delivery, Dining, and Menu management tabs for order tracking and analytics**
-<br/>
-<br/>
-2. Live Delivery Queue & Real-time ETA Tracking - Active delivery queue with countdown timers, one-time ETA setting per order, and "Delivered" status confirmation 
-<br/>
-<br/>
-**3. Order Status Management - Change order statuses across delivery (placed → preparing → out for delivery → delivered) and dining (booked → seated → done) workflows**
-<br/>
-<br/>
-**4. Menu Management - Add, remove, and categorize menu items with pricing, prep times, veg/non-veg tags, and "Today's Special" marking**
-<br/>
-<br/>
-**5. Real-time Analytics & Auto-refresh - Dashboard displays today's revenue, order counts, top items ordered, and revenue trends with 15-second auto-refresh cycle** 
-<br/>
-<br/>
+1. **Multi-Tab Kitchen Portal** — Overview, Delivery, Dining, and Menu management tabs
+2. **Live Delivery Queue** — Active orders with countdown timers and one-click status updates
+3. **Order Status Management** — placed → preparing → out for delivery → delivered / booked → seated → done
+4. **Menu Management** — Add, remove, and categorize items with pricing, prep times, and special flags
+5. **Real-time Analytics** — Today's revenue, order counts, top items, revenue trends with 15s auto-refresh
+
 ---
 
-## Deployment (Production)
+## Deployment
 
 ```bash
 # Railway / Render — set env vars in dashboard, deploy from GitHub
@@ -300,29 +340,22 @@ No code changes needed between dev and prod — just swap the public URL.
 
 ---
 
-### Prototype Images:
-
-`Dashboard` 
-
+### Dashboard Screenshots
 
 <img width="1917" height="915" alt="image" src="https://github.com/user-attachments/assets/ee238909-fa4f-46b8-8ccd-c978a449a8a4" />
-
-<br/>
-<br/>
+<br/><br/>
 <img width="1898" height="920" alt="image" src="https://github.com/user-attachments/assets/8061636f-ff2c-46ca-ae2d-2c0ecea12de6" />
-<br/>
-<br/>
+<br/><br/>
 <img width="1915" height="905" alt="image" src="https://github.com/user-attachments/assets/13a51d57-14c1-4c1d-91eb-41e44ca93011" />
-
-<br/>
-<br/>
+<br/><br/>
 <img width="1893" height="904" alt="image" src="https://github.com/user-attachments/assets/6c8bd64c-578e-453f-ac76-987d01fb4812" />
-<br/>
-<br/>
+<br/><br/>
 <img width="1897" height="903" alt="image" src="https://github.com/user-attachments/assets/50d76d31-7741-4687-b4f2-13d7f857df1a" />
-<br/>
-<br/>
 
-
+---
 
 > Built with LangGraph · Groq llama-3.3-70b · FastAPI · MongoDB · Twilio
+
+Output
+
+EXECUTE THE COMMAND AND GIVE ME THE FILE
