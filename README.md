@@ -27,7 +27,10 @@ Customer: "Yes."
 ```
 ## REAL TIME DEMO:
 
-[CALL LOG.mp3](https://github.com/user-attachments/files/28613231/CALL.LOG.mp3)
+<audio controls>
+  <source src="./DEMO.mp3" type="audio/mpeg">
+</audio>
+
 <br/>
 <br/>
 - `00:00 - 00:05` - Automated Caller Recognition & Session Initialization
