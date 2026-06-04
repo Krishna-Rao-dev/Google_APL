@@ -1,4 +1,4 @@
-# 🍛 Call2Cart — AI Phone Ordering Agent
+# Call2Cart — AI Phone Ordering Agent
 
 > A real phone number. A real conversation. A real order placed — no app, no typing.
 
@@ -25,6 +25,28 @@ Customer: "411043."
 Customer: "Yes."
   Priya:  "Order placed! Estimated delivery in 45 minutes. Have a great day!"
 ```
+## REAL TIME DEMO:
+
+[CALL LOG.mp3](https://github.com/user-attachments/files/28613231/CALL.LOG.mp3)
+<br/>
+<br/>
+- `00:00 - 00:05` - Automated Caller Recognition & Session Initialization
+- `00:05 - 00:21` - Multi-Item Entity Extraction and Order State Tracking
+- `00:21 - 00:43` - Live Barge-In Detection and Dynamic Order Updates
+- `00:43 - 01:03` - Historical Customer Profile Retrieval & Address Resolution
+- `01:03 - 01:22` - Dynamic Pricing Engine and Delivery Charge Computation
+- `01:22 - 01:38` - Order Verification and Transaction Commitment
+- `01:38 - 01:47` - Automated Twilio Notification Dispatch
+
+## CONFIRMATION MESSAGE VIA SMS
+<img width="200" height="300" alt="WhatsApp Image 2026-06-05 at 1 01 07 AM (1)" src="https://github.com/user-attachments/assets/a52dfb84-1185-4aa0-83e1-8f9e73b763a1" />
+
+## GETS LOGGED ON DASHBOARD OF THE RESTAURANT
+<img width="1026" height="595" alt="Screenshot 2026-06-05 005830" src="https://github.com/user-attachments/assets/d9e99645-a75b-4ed7-967f-2960d65fa08c" />
+
+
+## Live Delivery Progress Updates to the Customer
+<img width="200" height="300" alt="WhatsApp Image 2026-06-05 at 1 01 07 AM" src="https://github.com/user-attachments/assets/086b02bb-7d30-49d9-960d-ab780202dbf3" />
 
 ---
 
