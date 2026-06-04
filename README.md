@@ -356,6 +356,4 @@ No code changes needed between dev and prod — just swap the public URL.
 
 > Built with LangGraph · Groq llama-3.3-70b · FastAPI · MongoDB · Twilio
 
-Output
 
-EXECUTE THE COMMAND AND GIVE ME THE FILE
