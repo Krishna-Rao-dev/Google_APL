@@ -41,7 +41,7 @@ async def patch_status(order_id: str, body: StatusUpdate):
         {"$set": {"status": body.status}}
     )
     await orders_col.update_one(
-        {"order_id": order_id, "table_booking": {"$ne": None}},
+        {"order_id": order_id, "table_booking": {"$type": "object"}},
         {"$set": {"table_booking.status": body.status}}
     )
 

@@ -211,7 +211,6 @@ async def book_table(order_id: str, party_size: int) -> dict:
     Called after place_order when delivery_type is dining.
     """
     from backend.db import orders_col
-    from bson import ObjectId
     await orders_col.update_one(
         {"order_id": order_id},
         {"$set": {"table_booking": {"party_size": party_size, "status": "booked"}}}
