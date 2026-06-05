@@ -25,7 +25,17 @@ Customer: "Yes."
   Agent:  "Order placed! Estimated delivery in 45 minutes. Have a great day!"
 ```
 
-## REAL TIME DEMO:
+## PRESENTATION VIDEO :
+
+
+
+https://github.com/user-attachments/assets/d3f007a6-1812-4d80-a255-7db86c3ed619
+
+
+
+
+
+## REAL TIME DEMO (AUDIO ONLY) :
 
 [CLICK HERE TO DOWNLOAD THE DEMO CONVERSATION](https://github.com/user-attachments/files/28613231/CALL.LOG.mp3)
 <br/>
